@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import pymongo
 import os
 from dotenv import load_dotenv
@@ -46,7 +46,16 @@ async def ingest_data(data: EnergyReading):
         if data.power > threshold:
             alert = True
             message = f"⚠️ SPIKE DETECTED! {data.power}W > {threshold:.2f}W"
-            # TODO: Trigger email/SMS/Push Notification here
+            
+            # Log Alert to DB
+            alert_doc = {
+                "timestamp": data.timestamp,
+                "appliance_id": data.appliance_id,
+                "power": data.power,
+                "threshold": threshold,
+                "message": message
+            }
+            db.alerts.insert_one(alert_doc)
             print(message)
     else:
         message = "No forecast found for this time (Cold Start)"
@@ -55,4 +64,24 @@ async def ingest_data(data: EnergyReading):
         "status": "success",
         "spike_detected": alert,
         "message": message
+    }
+
+@app.get("/alerts/recent")
+async def get_recent_alerts():
+    """Get all alerts from the last hour"""
+    one_hour_ago = datetime.now() - timedelta(hours=1)
+    
+    # Query for alerts newer than 1 hour
+    query = {"timestamp": {"$gte": one_hour_ago}}
+    
+    # Sort by newest first
+    alerts = list(db.alerts.find(query).sort("timestamp", -1))
+    
+    # Convert ObjectIds to strings for JSON serialization
+    for alert in alerts:
+        alert["_id"] = str(alert["_id"])
+    
+    return {
+        "count": len(alerts),
+        "alerts": alerts
     }
