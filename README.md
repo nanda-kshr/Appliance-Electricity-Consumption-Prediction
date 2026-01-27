@@ -88,7 +88,7 @@ Retrieve alerts triggered in the last hour.
       "appliance_id": "laptop",
       "power": 120.5,
       "threshold": 80.0,
-      "message": "⚠️ SPIKE DETECTED! 120.5W > 80.00W"
+      "message": "SPIKE DETECTED! 120.5W > 80.00W"
     }
   ]
 }

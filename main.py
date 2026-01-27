@@ -7,7 +7,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Connect to DB
 client = pymongo.MongoClient(os.getenv("MONGO_URI"))
@@ -45,7 +55,7 @@ async def ingest_data(data: EnergyReading):
         # COMPARE: Actual vs Threshold
         if data.power > threshold:
             alert = True
-            message = f"⚠️ SPIKE DETECTED! {data.power}W > {threshold:.2f}W"
+            message = f"SPIKE DETECTED! {data.power}W > {threshold:.2f}W"
             
             # Log Alert to DB
             alert_doc = {
@@ -84,4 +94,24 @@ async def get_recent_alerts():
     return {
         "count": len(alerts),
         "alerts": alerts
+    }
+
+@app.get("/readings/recent")
+async def get_recent_readings():
+    """Get raw power readings from the last hour for the chart"""
+    one_hour_ago = datetime.now() - timedelta(hours=1)
+    
+    # Query for readings newer than 1 hour
+    query = {"timestamp": {"$gte": one_hour_ago}}
+    
+    # Sort by time ascending (for the chart)
+    readings = list(db.readings.find(query).sort("timestamp", 1))
+    
+    # Convert ObjectIds
+    for r in readings:
+        r["_id"] = str(r["_id"])
+    
+    return {
+        "count": len(readings),
+        "readings": readings
     }

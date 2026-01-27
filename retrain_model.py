@@ -43,7 +43,7 @@ def train_and_save():
     # 1. LOAD DATA
     df = get_data_from_mongo()
     if df is None or len(df) < 100: # Safety check: Need enough data to train
-        print("⚠️ Not enough data to retrain. Skipping.")
+        print("Not enough data to retrain. Skipping.")
         return
 
     # 2. PREPROCESSING (Must match your Forecaster logic exactly!)
@@ -88,6 +88,36 @@ def train_and_save():
     # -------------
     joblib.dump(model, MODEL_FILENAME)
     print(f"✅ Model successfully retrained and saved to '{MODEL_FILENAME}'")
+
+    # 6. GENERATE FORECAST FOR NEXT HOUR
+    # ----------------------------------
+    print("\nGenerating Forecast for the next hour...")
+    
+    current_time = datetime.now().replace(second=0, microsecond=0)
+    future_dates = [current_time + timedelta(minutes=i) for i in range(60)]
+    
+    future_df = pd.DataFrame({'time': future_dates})
+    future_df['hour'] = future_df['time'].dt.hour
+    future_df['minute'] = future_df['time'].dt.minute
+    future_df['dayofweek'] = future_df['time'].dt.dayofweek
+    future_df['is_weekend'] = future_df['dayofweek'].apply(lambda x: 1 if x >= 5 else 0)
+    
+    X_future = future_df[['hour', 'minute', 'dayofweek', 'is_weekend']]
+    future_df['expected_power'] = model.predict(X_future)
+    
+    # SPIKE THRESHOLD: 50% above expected
+    future_df['spike_threshold'] = future_df['expected_power'] * 1.5
+    
+    # Upload to MongoDB
+    client = pymongo.MongoClient(DB_URI)
+    db = client[DB_NAME]
+    
+    records = future_df[['time', 'expected_power', 'spike_threshold']].to_dict("records")
+    
+    # Clear old forecasts and insert new ones
+    db.forecasts.delete_many({})
+    db.forecasts.insert_many(records)
+    print(f"✅ Successfully uploaded {len(records)} forecast points to MongoDB.")
 
 if __name__ == "__main__":
     train_and_save()

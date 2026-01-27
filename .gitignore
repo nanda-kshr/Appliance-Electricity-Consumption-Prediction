@@ -144,3 +144,12 @@ cython_debug/
 
 # User specific
 baseline_model_laptop.joblib
+
+# Next.js
+dashboard/.next/
+dashboard/node_modules/
+dashboard/out/
+dashboard/build/
+dashboard/dist/
+dashboard/.ds_store
+dashboard/.env*.local
