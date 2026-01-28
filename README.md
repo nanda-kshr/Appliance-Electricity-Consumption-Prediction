@@ -1,6 +1,6 @@
 # Appliance Electricity Consumption Prediction
 
-This project monitors real-time electricity consumption of appliances (e.g., laptops) and detects anomalies (spikes) using an XGBoost model trained on historical data.
+This project monitors real-time electricity consumption of appliances (e.g., laptops) and  detects anomalies (spikes) using an XGBoost model trained on historical data.
 
 ## Features
 
