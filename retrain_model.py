@@ -33,10 +33,10 @@ def get_data_from_mongo():
     data = list(cursor)
     
     if not data:
-        print("❌ No data found in MongoDB for the last 30 days.")
+        print("Error: No data found in MongoDB for the last 30 days.")
         return None
 
-    print(f"✅ Fetched {len(data)} records from MongoDB.")
+    print(f"Fetched {len(data)} records from MongoDB.")
     return pd.DataFrame(data)
 
 def train_and_save():
@@ -87,7 +87,7 @@ def train_and_save():
     # 5. SAVE MODEL
     # -------------
     joblib.dump(model, MODEL_FILENAME)
-    print(f"✅ Model successfully retrained and saved to '{MODEL_FILENAME}'")
+    print(f"Model successfully retrained and saved to '{MODEL_FILENAME}'.")
 
     # 6. GENERATE FORECAST FOR NEXT HOUR
     # ----------------------------------
@@ -117,7 +117,7 @@ def train_and_save():
     # Clear old forecasts and insert new ones
     db.forecasts.delete_many({})
     db.forecasts.insert_many(records)
-    print(f"✅ Successfully uploaded {len(records)} forecast points to MongoDB.")
+    print(f"Successfully uploaded {len(records)} forecast points to MongoDB.")
 
 if __name__ == "__main__":
     train_and_save()

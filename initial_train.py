@@ -71,7 +71,7 @@ model.fit(X, y)
 
 # Save the model (optional, if you want to reuse it without retraining)
 joblib.dump(model, 'baseline_model_laptop.joblib')
-print("✅ Model Trained & Saved!")
+print("Model trained and saved successfully.")
 
 # ==========================================
 # 3. GENERATE "EXPECTED VALUES" (Run Hourly)
@@ -123,6 +123,6 @@ db.forecasts.delete_many({})
 # 3. Insert the new 60-minute plan
 db.forecasts.insert_many(records)
 
-print(f"✅ Successfully uploaded {len(records)} forecast points to MongoDB.")
+print(f"Successfully uploaded {len(records)} forecast points to MongoDB.")
 
 # output.to_dict('records') -> db.forecasts.insert_many(...)

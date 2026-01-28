@@ -47,7 +47,7 @@ def generate_data():
     # Insert into MongoDB
     if records:
         collection.insert_many(records)
-        print(f"✅ Successfully inserted {len(records)} synthetic records into '{COLLECTION_NAME}'")
+        print(f"Successfully inserted {len(records)} synthetic records into '{COLLECTION_NAME}'.")
     else:
         print("No records generated.")
 

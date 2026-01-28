@@ -69,7 +69,7 @@ export default function PowerChart({ data }: PowerChartProps) {
                     <Area
                         type="monotone"
                         dataKey="power"
-                        stroke="#10b981" // We'll make this dynamic in parent if needed, but green is good default
+                        stroke="#10b981"
                         fillOpacity={1}
                         fill="url(#colorPower)"
                         animationDuration={500}
