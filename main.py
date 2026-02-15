@@ -31,11 +31,18 @@ class EnergyReading(BaseModel):
 
 @app.post("/ingest")
 async def ingest_data(data: EnergyReading):
-    # 1. Set timestamp if missing
+    # 1. Fetch Offset from DB
+    settings = db.settings.find_one({"key": "power_offset"})
+    offset = settings.get("value", 0) if settings else 0
+
+    # 2. Apply Offset
+    data.power += offset
+
+    # 3. Set timestamp if missing
     if not data.timestamp:
         data.timestamp = datetime.now()
 
-    # 2. Store Raw Data (The "Hot" Path)
+    # 4. Store Raw Data (The "Hot" Path)
     db.readings.insert_one(data.dict())
 
     # 3. REAL-TIME SPIKE CHECK
@@ -114,4 +121,17 @@ async def get_recent_readings():
     return {
         "count": len(readings),
         "readings": readings
+    }
+
+@app.get("/offset/{factor}")
+async def set_offset(factor: int):
+    """Set a global power offset value"""
+    db.settings.update_one(
+        {"key": "power_offset"},
+        {"$set": {"value": factor}},
+        upsert=True
+    )
+    return {
+        "status": "success",
+        "message": f"Power offset set to {factor}W"
     }
